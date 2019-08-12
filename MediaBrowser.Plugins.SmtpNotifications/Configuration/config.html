@@ -96,13 +96,13 @@
 
                         })[0] || { Enabled: false };
 
-                        $('#chkEnableSMTP', page).checked(smtpConfig.Enabled).checkboxradio("refresh");
+                        page.querySelector('#chkEnableSMTP').checked = smtpConfig.Enabled;
                         $('#txtEmailFrom', page).val(smtpConfig.EmailFrom || '');
                         $('#txtEmailTo', page).val(smtpConfig.EmailTo || '');
                         $('#txtServer', page).val(smtpConfig.Server || '');
                         $('#txtPort', page).val(smtpConfig.Port || '');
-                        $('#chkEnableSSL', page).checked(smtpConfig.SSL || false).checkboxradio("refresh");
-                        $('#chkEnableAuth', page).checked(smtpConfig.UseCredentials || false).checkboxradio("refresh");
+                        page.querySelector('#chkEnableSSL').checked = smtpConfig.SSL || false;
+                        page.querySelector('#chkEnableAuth').checked = smtpConfig.UseCredentials || false;
                         $('#txtUsername', page).val(smtpConfig.Username || '');
                         $('#txtPassword', page).val(smtpConfig.Password || '');
 
@@ -174,13 +174,13 @@
                             }
 
                             smtpConfig.MediaBrowserUserId = userId;
-                            smtpConfig.Enabled = $('#chkEnableSMTP', form).checked();
+                            smtpConfig.Enabled = form.querySelector('#chkEnableSMTP').checked;
                             smtpConfig.EmailFrom = $('#txtEmailFrom', form).val();
                             smtpConfig.EmailTo = $('#txtEmailTo', form).val();
                             smtpConfig.Server = $('#txtServer', form).val();
                             smtpConfig.Port = $('#txtPort', form).val();
-                            smtpConfig.useCredentials = $('#chkEnableAuth', form).checked();
-                            smtpConfig.SSL = $('#chkEnableSSL', form).checked();
+                            smtpConfig.useCredentials = form.querySelector('#chkEnableAuth').checked;
+                            smtpConfig.SSL = form.querySelector('#chkEnableSSL').checked;
                             smtpConfig.Username = $('#txtUsername', form).val();
                             smtpConfig.Password = $('#txtPassword', form).val();
 
@@ -202,7 +202,7 @@
 
                             return '<option value="' + user.Id + '">' + user.Name + '</option>';
 
-                        })).selectmenu('refresh').trigger('change');
+                        })).trigger('change');
 
                     });
 
