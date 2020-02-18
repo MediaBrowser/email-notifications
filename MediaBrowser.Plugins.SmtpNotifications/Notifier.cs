@@ -44,29 +44,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             get { return Plugin.Instance.Name; }
         }
 
-
-        public Task SendNotification(UserNotification request, CancellationToken cancellationToken)
-        {
-            return Task.Run(() => TrySendNotification(request, cancellationToken));
-        }
-
-        private void TrySendNotification(UserNotification request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                SendNotificationCore(request, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-
-            }
-            catch (Exception ex)
-            {
-                _logger.ErrorException("Error sending email", ex);
-            }
-        }
-
-        private void SendNotificationCore(UserNotification request, CancellationToken cancellationToken)
+        public async Task SendNotification(UserNotification request, CancellationToken cancellationToken)
         {
             var options = GetOptions(request.User);
 
@@ -97,7 +75,8 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
                     try
                     {
-                        client.Send(mail);
+                        await client.SendMailAsync(mail).ConfigureAwait(false);
+
                         _logger.Info("Completed sending email {0} with subject {1}", options.EmailTo, mail.Subject);
                     }
                     catch (Exception ex)
