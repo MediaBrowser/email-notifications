@@ -28,7 +28,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Configuration
         public string PwData { get; set; }
         public string MediaBrowserUserId { get; set; }
         public bool SSL { get; set; }
-
+        public bool IgnoreCertificateErrors { get; set; }
         public SMTPOptions()
         {
             Port = 25;

@@ -64,6 +64,12 @@
                             Password for your SMTP Server.
                         </div>
                     </div>
+
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkIgnoreCertificateErrors" />
+                        <span>Ignore SSL Certificate Errors</span>
+                    </label>
+
                     <div>
                         <button is="emby-button" type="button" class="raised button-cancel block" id="testNotification">
                             <span>Test Notification</span>
@@ -95,7 +101,6 @@
                             return userId == c.MediaBrowserUserId;
 
                         })[0] || { Enabled: false };
-
                         page.querySelector('#chkEnableSMTP').checked = smtpConfig.Enabled;
                         $('#txtEmailFrom', page).val(smtpConfig.EmailFrom || '');
                         $('#txtEmailTo', page).val(smtpConfig.EmailTo || '');
@@ -105,6 +110,7 @@
                         page.querySelector('#chkEnableAuth').checked = smtpConfig.UseCredentials || false;
                         $('#txtUsername', page).val(smtpConfig.Username || '');
                         $('#txtPassword', page).val(smtpConfig.Password || '');
+                        page.querySelector('#chkIgnoreCertificateErrors').checked = smtpConfig.IgnoreCertificateErrors;
 
                         Dashboard.hideLoadingMsg();
                     });
@@ -183,6 +189,7 @@
                             smtpConfig.SSL = form.querySelector('#chkEnableSSL').checked;
                             smtpConfig.Username = $('#txtUsername', form).val();
                             smtpConfig.Password = $('#txtPassword', form).val();
+                            smtpConfig.IgnoreCertificateErrors = form.querySelector('#chkIgnoreCertificateErrors').checked;
 
                             ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                         });

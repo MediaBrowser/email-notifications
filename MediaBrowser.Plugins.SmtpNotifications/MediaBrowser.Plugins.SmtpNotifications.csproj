@@ -2,22 +2,36 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;</TargetFrameworks>
-    <AssemblyVersion>3.1.6.0</AssemblyVersion>
-    <FileVersion>3.1.6.0</FileVersion>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+    <FileVersion>4.0.0.0</FileVersion>
+    <PackageReleaseNotes>Utilising MailKit and MimeKit - Anthony Musgrove (anthony.musgrove@newymods.com.au)</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Configuration\config.html" />
+    <None Remove="Dependencies\MailKit.dll" />
+    <None Remove="Dependencies\MimeKit.dll" />
     <None Remove="thumb.jpg" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Configuration\config.html" />
+    <EmbeddedResource Include="Dependencies\MailKit.dll" />
+    <EmbeddedResource Include="Dependencies\MimeKit.dll" />
     <EmbeddedResource Include="thumb.jpg" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="mediabrowser.server.core" Version="4.0.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MailKit">
+      <HintPath>Dependencies\MailKit.dll</HintPath>
+    </Reference>
+    <Reference Include="MimeKit">
+      <HintPath>Dependencies\MimeKit.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

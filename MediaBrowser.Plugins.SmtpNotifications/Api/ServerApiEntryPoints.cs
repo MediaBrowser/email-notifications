@@ -9,6 +9,7 @@ using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Plugins.SmtpNotifications.Api
 {
+
     [Route("/Notification/SMTP/Test/{UserID}", "POST", Summary = "Tests SMTP")]
     public class TestNotification : IReturnVoid
     {
