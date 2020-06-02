@@ -24,6 +24,7 @@ using MimeKit;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 using System.Data.SqlTypes;
+using MediaBrowser.Controller.Session;
 
 namespace MediaBrowser.Plugins.SmtpNotifications
 {
@@ -50,8 +51,16 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
         private SMTPOptions GetOptions(User user)
         {
-            return Plugin.Instance.Configuration.Options
-                .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString("N"), StringComparison.OrdinalIgnoreCase));
+            try
+            {
+                return Plugin.Instance.Configuration.Options
+                    .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString("N"), StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error getting SMTP options for userId '{0}': {1}", user.Id, ex.Message);
+                return (null);
+            }
         }
 
         public string Name
@@ -65,8 +74,19 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             var mail = new MimeMessage(); var bodyBuilder = new BodyBuilder();
 
-            mail.From.Add(new MailboxAddress("Emby", options.EmailFrom));
-            mail.To.Add(new MailboxAddress("", options.EmailTo));
+            try
+            {
+                mail.From.Add(new MailboxAddress(options.EmailFromName, options.EmailFrom));
+                mail.To.Add(new MailboxAddress("", options.EmailTo));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error creating Mailbox Address objects for from:{0} or to:{1} (error: {2})", options.EmailFrom, options.EmailTo, ex.Message);
+
+                /* If testing SMTP, push exception to API caller */
+                if (request.Name == "Test Notification")
+                    throw ex;
+            }
 
             mail.Subject = "Emby: " + request.Name;
 
@@ -77,7 +97,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             var client = new MailKit.Net.Smtp.SmtpClient();
 
-            if(options.IgnoreCertificateErrors)
+            if (options.IgnoreCertificateErrors.GetValueOrDefault(false))
                 client.ServerCertificateValidationCallback = this.sslCertificateValidationCallback;
 
             client.Timeout = 20000;
@@ -93,12 +113,24 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                     _logger.Info("Authenticating to smtpserver using {0}/<hidden>", options.Username);
 
                     var pw = string.IsNullOrWhiteSpace(options.Password) ? _encryption.DecryptString(options.PwData) : options.Password;
-                    await client.AuthenticateAsync(new NetworkCredential(options.Username, pw)).ConfigureAwait(false);
+
+                    try
+                    {
+                        await client.AuthenticateAsync(new NetworkCredential(options.Username, pw)).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Info("Failed to authenticate to SMTP server: {0}", ex.Message);
+
+                        /* If testing SMTP, push exception to API caller */
+                        if (request.Name == "Test Notification")
+                            throw ex;
+                    }
                 }
 
                 _logger.Info("Sending email {0} with subject {1}", options.EmailTo, mail.Subject);
 
-                await client.SendAsync(mail).ConfigureAwait(false);
+                await client.SendAsync(mail, default, null).ConfigureAwait(false);
 
                 _logger.Info("Completed sending email {0} with subject {1}", options.EmailTo, mail.Subject);
             }
@@ -106,6 +138,9 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             {
                 _logger.Error("Error sending email: {0} ", ex);
 
+                /* If testing SMTP, push exception to API caller */
+                if (request.Name == "Test Notification")
+                    throw ex;
             }
         }
 

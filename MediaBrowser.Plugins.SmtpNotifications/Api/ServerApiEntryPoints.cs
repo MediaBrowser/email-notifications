@@ -6,12 +6,14 @@ using System.Threading;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Services;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Model.Tasks;
 
 namespace MediaBrowser.Plugins.SmtpNotifications.Api
 {
 
     [Route("/Notification/SMTP/Test/{UserID}", "POST", Summary = "Tests SMTP")]
-    public class TestNotification : IReturnVoid
+    public class TestNotification : IReturn<string>
     {
         [ApiMember(Name = "UserID", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "POST")]
         public string UserID { get; set; }
@@ -30,19 +32,21 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Api
             _encryption = encryption;
         }
 
-        public void Post(TestNotification request)
+        public string Post(TestNotification request)
         {
+
             var task = new Notifier(_logger, _encryption).SendNotification(new UserNotification
             {
                 Date = DateTime.UtcNow,
                 Description = "This is a test notification from Emby Server",
                 Level = Model.Notifications.NotificationLevel.Normal,
-                Name = "Emby: Test Notification",
+                Name = "Test Notification",
                 User = _userManager.GetUserById(request.UserID)
-
             }, CancellationToken.None);
 
             Task.WaitAll(task);
+
+            return ("{\"status\": \"success\"}");
         }
     }
 }
