@@ -18,6 +18,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Configuration
     public class SMTPOptions
     {
         public bool Enabled { get; set; }
+        public string EmailFromName { get; set; }
         public string EmailFrom { get; set; }
         public string EmailTo { get; set; }
         public string Server { get; set; }
@@ -28,7 +29,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Configuration
         public string PwData { get; set; }
         public string MediaBrowserUserId { get; set; }
         public bool SSL { get; set; }
-
+        public bool ?IgnoreCertificateErrors { get; set; }
         public SMTPOptions()
         {
             Port = 25;
