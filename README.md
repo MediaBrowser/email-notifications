@@ -1,12 +1,11 @@
-Emby.Plugins
+Emby.Plugins Email Notifications
 ====================
 
-This repository contains many of the plugins that are built and maintained by the Emby community.
+Email notifications is a core Emby Plugin that allows the administrator to send emails to specified email addresses with various events within Emby.  
 
-Each of the projects has a build event that copies it's output to the programdata/plugins folder. 
+Version 4.0.0.4 has been released to rectify the issues surrounding the dotnetcore SmtpClient library, which unfortunately does not support many of today's current secure email protocols.
 
-By default this assumes you have the server repository side by side in a folder called 'MediaBrowser'. If this is not the case, or if you've installed the server than you'll need to update the build events manually in order to test code changes.
-
+This plugin was rewritten to utilise MailKit/MimeKit at its core, which rectifies these issues and provides much more indepth protocol and email provider support.
 
 ## More Information ##
 
