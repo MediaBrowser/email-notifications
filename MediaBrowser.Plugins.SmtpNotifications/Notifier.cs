@@ -64,9 +64,9 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
                         _logger.Info("Completed sending email {0} with subject {1}", options.EmailTo, mail.Subject);
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        _logger.Error("Error sending email: {0} ", ex);
+                        throw;
                     }
                 }
             }
