@@ -36,7 +36,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             using (var mail = new MailMessage(options.EmailFrom, options.EmailTo)
             {
-                Subject = "Emby: " + request.Title,
+                Subject = request.Title,
                 Body = string.Format("{0}\n\n{1}", request.Title, request.Description)
             })
             {
