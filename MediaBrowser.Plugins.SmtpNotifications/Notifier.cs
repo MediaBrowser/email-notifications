@@ -1,8 +1,9 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using Emby.Notifications;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Plugins.SmtpNotifications.Configuration;
 using System;
 using System.Linq;
 using System.Net;
@@ -12,46 +13,31 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.SmtpNotifications
 {
-    public class Notifier : INotificationService
+    public class Notifier : INotifier
     {
-        private readonly IEncryptionManager _encryption;
-        private readonly ILogger _logger;
-        public static Notifier Instance { get; private set; }
+        private IServerConfigurationManager _config;
+        private ILogger _logger;
 
-        public Notifier(ILogger logger, IEncryptionManager encryption)
+        public static string TestNotificationId = "system.emailnotificationtest";
+        public Notifier(IServerConfigurationManager config, ILogger logger)
         {
-            _encryption = encryption;
+            _config = config;
             _logger = logger;
-
-            Instance = this;
-        }
-
-        public bool IsEnabledForUser(User user)
-        {
-            var options = GetOptions(user);
-
-            return options != null && IsValid(options) && options.Enabled;
-        }
-
-        private SMTPOptions GetOptions(User user)
-        {
-            return Plugin.Instance.Configuration.Options
-                .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString("N"), StringComparison.OrdinalIgnoreCase));
         }
 
         public string Name
         {
-            get { return Plugin.Instance.Name; }
+            get { return Plugin.StaticName; }
         }
 
-        public async Task SendNotification(UserNotification request, CancellationToken cancellationToken)
+        public async Task SendNotification(InternalNotificationRequest request, CancellationToken cancellationToken)
         {
-            var options = GetOptions(request.User);
+            var options = request.Configuration as EmailNotificationInfo;
 
             using (var mail = new MailMessage(options.EmailFrom, options.EmailTo)
             {
-                Subject = "Emby: " + request.Name,
-                Body = string.Format("{0}\n\n{1}", request.Name, request.Description)
+                Subject = "Emby: " + request.Title,
+                Body = string.Format("{0}\n\n{1}", request.Title, request.Description)
             })
             {
                 using (var client = new SmtpClient
@@ -63,14 +49,13 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                     Timeout = 20000
                 })
                 {
-                    if (options.SSL) client.EnableSsl = true;
+                    if (options.EnableSSL) client.EnableSsl = true;
 
                     _logger.Info("Sending email {0} with subject {1}", options.EmailTo, mail.Subject);
 
-                    if (options.UseCredentials)
+                    if (!string.IsNullOrEmpty(options.Username))
                     {
-                        var pw = string.IsNullOrWhiteSpace(options.Password) ? _encryption.DecryptString(options.PwData) : options.Password;
-                        client.Credentials = new NetworkCredential(options.Username, pw);
+                        client.Credentials = new NetworkCredential(options.Username, options.Password);
                     }
 
                     try
@@ -87,11 +72,9 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             }
         }
 
-        private bool IsValid(SMTPOptions options)
+        public NotificationInfo[] GetConfiguredNotifications()
         {
-            return !string.IsNullOrEmpty(options.EmailFrom) &&
-                   !string.IsNullOrEmpty(options.EmailTo) &&
-                   !string.IsNullOrEmpty(options.Server);
+            return _config.GetConfiguredNotifications();
         }
     }
 }

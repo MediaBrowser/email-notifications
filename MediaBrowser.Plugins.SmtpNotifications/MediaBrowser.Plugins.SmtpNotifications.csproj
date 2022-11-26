@@ -2,22 +2,29 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;</TargetFrameworks>
-    <AssemblyVersion>3.1.6.0</AssemblyVersion>
-    <FileVersion>3.1.6.0</FileVersion>
+    <AssemblyVersion>3.1.7.0</AssemblyVersion>
+    <FileVersion>3.1.7.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Configuration\config.html" />
+    <None Remove="Configuration\email.html" />
+    <None Remove="Configuration\email.js" />
+    <None Remove="Configuration\emaileditor.js" />
+    <None Remove="Configuration\emaileditor.template.html" />
     <None Remove="thumb.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Configuration\config.html" />
+    <EmbeddedResource Include="Configuration\email.html" />
+    <EmbeddedResource Include="Configuration\email.js" />
+    <EmbeddedResource Include="Configuration\emaileditor.js" />
+    <EmbeddedResource Include="Configuration\emaileditor.template.html" />
     <EmbeddedResource Include="thumb.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="4.0.0.2" />
+    <PackageReference Include="mediabrowser.server.core" Version="4.8.0.20-beta" />
+    <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
 
 </Project>

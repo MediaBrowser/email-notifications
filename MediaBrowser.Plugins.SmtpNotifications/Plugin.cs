@@ -5,36 +5,61 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.SmtpNotifications.Configuration;
 using MediaBrowser.Model.Drawing;
 using System.IO;
+using System.Linq;
 
 namespace MediaBrowser.Plugins.SmtpNotifications
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
-    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages, IHasThumbImage
+    public class Plugin : BasePlugin, IHasWebPages, IHasThumbImage, IHasTranslations
     {
-        private readonly IEncryptionManager _encryption;
-
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IEncryptionManager encryption)
-            : base(applicationPaths, xmlSerializer)
-        {
-            _encryption = encryption;
-            Instance = this;
-        }
-
         public IEnumerable<PluginPageInfo> GetPages()
         {
             return new[]
             {
                 new PluginPageInfo
                 {
-                    Name = Name,
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.config.html"
+                    Name = "emailnotifications",
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.email.html",
+                    EnableInMainMenu = true,
+                    MenuSection = "server",
+                    MenuIcon = "email"
+                },
+                new PluginPageInfo
+                {
+                    Name = "emailnotificationsjs",
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.email.js"
+                },
+                new PluginPageInfo
+                {
+                    Name = "emailnotificationeditorjs",
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.emaileditor.js"
+                },
+                new PluginPageInfo
+                {
+                    Name = "emaileditortemplate",
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.emaileditor.template.html"
                 }
             };
+        }
+
+        public TranslationInfo[] GetTranslations()
+        {
+            var basePath = GetType().Namespace + ".strings.";
+
+            return GetType()
+                .Assembly
+                .GetManifestResourceNames()
+                .Where(i => i.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
+                .Select(i => new TranslationInfo
+                {
+                    Locale = Path.GetFileNameWithoutExtension(i.Substring(basePath.Length)),
+                    EmbeddedResourcePath = i
+
+                }).ToArray();
         }
 
         public Stream GetThumbImage()
@@ -57,13 +82,15 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             get { return _id; }
         }
 
+        public static string StaticName = "Email Notifications";
+
         /// <summary>
         /// Gets the name of the plugin
         /// </summary>
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Email Notifications"; }
+            get { return StaticName; }
         }
 
         /// <summary>
@@ -77,11 +104,5 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                 return "Sends notifications via email.";
             }
         }
-
-        /// <summary>
-        /// Gets the instance.
-        /// </summary>
-        /// <value>The instance.</value>
-        public static Plugin Instance { get; private set; }
     }
 }
