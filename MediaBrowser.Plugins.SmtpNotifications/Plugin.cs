@@ -25,7 +25,6 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                     Name = "emailnotifications",
                     EmbeddedResourcePath = GetType().Namespace + ".Configuration.email.html",
                     EnableInMainMenu = true,
-                    MenuSection = "server",
                     MenuIcon = "email"
                 },
                 new PluginPageInfo
