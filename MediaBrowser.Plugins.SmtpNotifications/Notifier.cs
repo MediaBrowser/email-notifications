@@ -16,7 +16,7 @@ using MediaBrowser.Controller;
 
 namespace MediaBrowser.Plugins.SmtpNotifications
 {
-    public class Notifier : IUserNotifier
+    public class Notifier : IUserNotifier, INotifierWithDefaultOptions
     {
         private ILogger _logger;
         private IServerApplicationHost _appHost;
@@ -34,6 +34,8 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         public string Key => "emailnotifications";
 
         public string SetupModuleUrl => Plugin.NotificationSetupModuleUrl;
+
+        private int DefaultPort = 25;
 
         public async Task SendNotification(InternalNotificationRequest request, CancellationToken cancellationToken)
         {
@@ -53,7 +55,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             options.TryGetValue("Port", out string portString);
             if (!int.TryParse(portString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int port))
             {
-                port = 25;
+                port = DefaultPort;
             }
 
             using (var mail = new MailMessage(emailFrom, emailTo)
@@ -81,6 +83,15 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                     await client.SendMailAsync(mail).ConfigureAwait(false);
                 }
             }
+        }
+
+        public Dictionary<string, string> GetDefaultOptions()
+        {
+            var options = new Dictionary<string, string>();
+
+            options["Port"] = DefaultPort.ToString(CultureInfo.InvariantCulture);
+
+            return options;
         }
     }
 }
