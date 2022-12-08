@@ -22,28 +22,19 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             {
                 new PluginPageInfo
                 {
-                    Name = "emailnotifications",
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.email.html",
-                    EnableInMainMenu = true,
-                    MenuIcon = "email"
-                },
-                new PluginPageInfo
-                {
-                    Name = "emailnotificationsjs",
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.email.js"
-                },
-                new PluginPageInfo
-                {
                     Name = "emailnotificationeditorjs",
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.emaileditor.js"
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.entryeditor.js"
                 },
                 new PluginPageInfo
                 {
                     Name = "emaileditortemplate",
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.emaileditor.template.html"
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.entryeditor.template.html",
+                    IsMainConfigPage = false
                 }
             };
         }
+
+        public string NotificationSetupModuleUrl => GetPluginPageUrl("emailnotificationeditorjs");
 
         public TranslationInfo[] GetTranslations()
         {

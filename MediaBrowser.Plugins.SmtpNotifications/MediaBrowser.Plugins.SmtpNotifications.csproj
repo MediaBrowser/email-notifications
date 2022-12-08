@@ -7,23 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Configuration\email.html" />
-    <None Remove="Configuration\email.js" />
-    <None Remove="Configuration\emaileditor.js" />
-    <None Remove="Configuration\emaileditor.template.html" />
+    <None Remove="Configuration\entryeditor.js" />
+    <None Remove="Configuration\entryeditor.template.html" />
     <None Remove="thumb.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Configuration\email.html" />
-    <EmbeddedResource Include="Configuration\email.js" />
-    <EmbeddedResource Include="Configuration\emaileditor.js" />
-    <EmbeddedResource Include="Configuration\emaileditor.template.html" />
+    <EmbeddedResource Include="Configuration\entryeditor.js" />
+    <EmbeddedResource Include="Configuration\entryeditor.template.html" />
     <EmbeddedResource Include="thumb.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="4.8.0.20-beta" />
+    <PackageReference Include="mediabrowser.server.core" Version="4.8.0.20-beta10" />
     <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
 

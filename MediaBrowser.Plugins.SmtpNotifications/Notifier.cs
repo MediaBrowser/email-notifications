@@ -5,36 +5,58 @@ using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Model.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
+using MediaBrowser.Controller;
 
 namespace MediaBrowser.Plugins.SmtpNotifications
 {
-    public class Notifier : INotifier
+    public class Notifier : IUserNotifier
     {
-        private IServerConfigurationManager _config;
         private ILogger _logger;
+        private IServerApplicationHost _appHost;
 
-        public static string TestNotificationId = "system.emailnotificationtest";
-        public Notifier(IServerConfigurationManager config, ILogger logger)
+        public Notifier(ILogger logger, IServerApplicationHost applicationHost)
         {
-            _config = config;
             _logger = logger;
+            _appHost = applicationHost;
         }
 
-        public string Name
-        {
-            get { return Plugin.StaticName; }
-        }
+        private Plugin Plugin => _appHost.Plugins.OfType<Plugin>().First();
+
+        public string Name => Plugin.StaticName;
+
+        public string Key => "emailnotifications";
+
+        public string SetupModuleUrl => Plugin.NotificationSetupModuleUrl;
 
         public async Task SendNotification(InternalNotificationRequest request, CancellationToken cancellationToken)
         {
-            var options = request.Configuration as EmailNotificationInfo;
+            Dictionary<string, string> options = request.Configuration.Options;
 
-            using (var mail = new MailMessage(options.EmailFrom, options.EmailTo)
+            options.TryGetValue("EmailFrom", out string emailFrom);
+            options.TryGetValue("EmailTo", out string emailTo);
+
+            options.TryGetValue("Username", out string username);
+            options.TryGetValue("Password", out string password);
+
+            options.TryGetValue("Server", out string server);
+            
+            options.TryGetValue("EnableSSL", out string enableSSLString);
+            var enableSSL = string.Equals(enableSSLString, "true", StringComparison.OrdinalIgnoreCase);
+
+            options.TryGetValue("Port", out string portString);
+            if (!int.TryParse(portString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int port))
+            {
+                port = 25;
+            }
+
+            using (var mail = new MailMessage(emailFrom, emailTo)
             {
                 Subject = request.Title,
                 Body = string.Format("{0}\n\n{1}", request.Title, request.Description)
@@ -42,39 +64,23 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             {
                 using (var client = new SmtpClient
                 {
-                    Host = options.Server,
-                    Port = options.Port,
+                    Host = server,
+                    Port = port,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
                     Timeout = 20000
                 })
                 {
-                    if (options.EnableSSL) client.EnableSsl = true;
+                    if (enableSSL) client.EnableSsl = true;
 
-                    _logger.Info("Sending email {0} with subject {1}", options.EmailTo, mail.Subject);
-
-                    if (!string.IsNullOrEmpty(options.Username))
+                    if (!string.IsNullOrEmpty(username))
                     {
-                        client.Credentials = new NetworkCredential(options.Username, options.Password);
+                        client.Credentials = new NetworkCredential(username, password);
                     }
 
-                    try
-                    {
-                        await client.SendMailAsync(mail).ConfigureAwait(false);
-
-                        _logger.Info("Completed sending email {0} with subject {1}", options.EmailTo, mail.Subject);
-                    }
-                    catch
-                    {
-                        throw;
-                    }
+                    await client.SendMailAsync(mail).ConfigureAwait(false);
                 }
             }
-        }
-
-        public NotificationInfo[] GetConfiguredNotifications()
-        {
-            return _config.GetConfiguredNotifications();
         }
     }
 }

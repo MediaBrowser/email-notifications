@@ -1,0 +1,42 @@
+﻿<div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+
+<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtEmailFrom" required="required" label="Email from:" />
+    <div class="fieldDescription">
+        Email Address that messages will be sent from. Sending from a free email service such as gmail, hotmail, or yahoo is not recommended. The providers may block repeated outgoing, automated email.
+    </div>
+</div>
+<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtEmailTo" required="required" label="Email to:" />
+    <div class="fieldDescription">
+        Email Address that messaged will be sent to.
+    </div>
+</div>
+<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtServer" required="required" label="SMTP hostname:" />
+    <div class="fieldDescription">
+        Hostname for your SMTP Server. Sending from a free email service such as gmail, hotmail, or yahoo is not recommended. The providers may block repeated outgoing, automated email.
+    </div>
+</div>
+<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtPort" label="SMTP port:" />
+    <div class="fieldDescription">
+        Port for your SMTP Server (Default 25).
+    </div>
+</div>
+<label class="checkboxContainer">
+    <input is="emby-checkbox" type="checkbox" class="chkEnableSSL" />
+    <span>Enable SSL / TLS</span>
+</label>
+<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtUsername" label="SMTP username:" />
+    <div class="fieldDescription">
+        Username for your SMTP Server, if required.
+    </div>
+</div>
+<div class="inputContainer">
+    <input is="emby-input" type="password" class="txtPassword" label="SMTP password:" />
+    <div class="fieldDescription">
+        Password for your SMTP Server, if required.
+    </div>
+</div>
