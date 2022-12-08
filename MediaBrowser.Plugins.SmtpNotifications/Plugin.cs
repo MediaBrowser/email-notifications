@@ -74,7 +74,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             get { return _id; }
         }
 
-        public static string StaticName = "Email Notifications";
+        public static string StaticName = "Email";
 
         /// <summary>
         /// Gets the name of the plugin
@@ -82,7 +82,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         /// <value>The name.</value>
         public override string Name
         {
-            get { return StaticName; }
+            get { return StaticName + " Notifications"; }
         }
 
         /// <summary>
