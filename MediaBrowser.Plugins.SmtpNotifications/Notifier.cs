@@ -37,7 +37,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
         public async Task SendNotification(InternalNotificationRequest request, CancellationToken cancellationToken)
         {
-            Dictionary<string, string> options = request.Configuration.Options;
+            var options = request.Configuration.Options;
 
             options.TryGetValue("EmailFrom", out string emailFrom);
             options.TryGetValue("EmailTo", out string emailTo);

@@ -16,13 +16,15 @@ namespace MediaBrowser.Plugins.SmtpNotifications
     /// </summary>
     public class Plugin : BasePlugin, IHasWebPages, IHasThumbImage, IHasTranslations
     {
+        private const string EditorJsName = "emailnotificationeditorjs";
+
         public IEnumerable<PluginPageInfo> GetPages()
         {
             return new[]
             {
                 new PluginPageInfo
                 {
-                    Name = "emailnotificationeditorjs",
+                    Name = EditorJsName,
                     EmbeddedResourcePath = GetType().Namespace + ".Configuration.entryeditor.js"
                 },
                 new PluginPageInfo
@@ -34,7 +36,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             };
         }
 
-        public string NotificationSetupModuleUrl => GetPluginPageUrl("emailnotificationeditorjs");
+        public string NotificationSetupModuleUrl => GetPluginPageUrl(EditorJsName);
 
         public TranslationInfo[] GetTranslations()
         {
