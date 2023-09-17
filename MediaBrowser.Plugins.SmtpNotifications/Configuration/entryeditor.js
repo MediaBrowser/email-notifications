@@ -21,7 +21,7 @@
         context.querySelector('.txtEmailTo').value = entry.Options.EmailTo || '';
         context.querySelector('.txtServer').value = entry.Options.Server || '';
         context.querySelector('.txtPort').value = entry.Options.Port || '';
-        context.querySelector('.chkEnableSSL').checked = entry.Options.EnableSSL;
+        context.querySelector('.chkEnableSSL').checked = entry.Options.EnableSSL === 'true';
         context.querySelector('.txtUsername').value = entry.Options.Username || '';
         context.querySelector('.txtPassword').value = entry.Options.Password || '';
     };
