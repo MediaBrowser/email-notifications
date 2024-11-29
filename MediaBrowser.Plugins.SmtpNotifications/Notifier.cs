@@ -93,10 +93,12 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             options.TryGetValue("EmailFrom", out string emailFrom);
             options.TryGetValue("EmailTo", out string emailTo);
 
+            var body = string.Format("{0}\n\n{1}\n\n{2}", request.Title, request.Description, request.Date.ToLocalTime().ToString("f"));
+
             using (var mail = new MailMessage(emailFrom, emailTo)
             {
                 Subject = request.Title,
-                Body = string.Format("{0}\n\n{1}", request.Title, request.Description)
+                Body = body
             })
             {
                 await GetSmtpClient(request).SendMailAsync(mail).ConfigureAwait(false);
