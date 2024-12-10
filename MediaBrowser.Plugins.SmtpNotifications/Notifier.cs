@@ -37,9 +37,9 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         public string SetupModuleUrl => Plugin.NotificationSetupModuleUrl;
 
         private int DefaultPort = 25;
-        private ConcurrentDictionary<string, SmtpClient> Clients = new ConcurrentDictionary<string, SmtpClient>(StringComparer.OrdinalIgnoreCase);
+        private ConcurrentDictionary<string, SmtpClientInfo> Clients = new ConcurrentDictionary<string, SmtpClientInfo>(StringComparer.OrdinalIgnoreCase);
 
-        private SmtpClient GetSmtpClient(InternalNotificationRequest request)
+        private SmtpClientInfo GetSmtpClient(InternalNotificationRequest request)
         {
             var keys = new List<string>();
             var key = string.Join("-", keys.ToArray());
@@ -82,7 +82,10 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                     client.Credentials = new NetworkCredential(username, password);
                 }
 
-                return client;
+                return new SmtpClientInfo
+                {
+                    SmtpClient = client,
+                };
             });
         }
 
@@ -93,7 +96,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             options.TryGetValue("EmailFrom", out string emailFrom);
             options.TryGetValue("EmailTo", out string emailTo);
 
-            var body = string.Format("{0}\n\n{1}\n\n{2}", request.Title, request.Date.ToLocalTime().ToString("f"), request.Description);
+            var body = string.Format("{0}\n\n{1}", request.Title, request.Description);
 
             using (var mail = new MailMessage(emailFrom, emailTo)
             {
@@ -101,7 +104,19 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                 Body = body
             })
             {
-                await GetSmtpClient(request).SendMailAsync(mail).ConfigureAwait(false);
+                var clientInfo = GetSmtpClient(request);
+
+                // https://emby.media/community/index.php?/topic/134277-email-notifications-3190/#comment-1405314
+                await clientInfo.ResourceLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                try
+                {
+                    await clientInfo.SmtpClient.SendMailAsync(mail).ConfigureAwait(false);
+                }
+                finally
+                {
+                    clientInfo.ResourceLock.Release();
+                }
             }
         }
 
@@ -113,5 +128,11 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             return options;
         }
+    }
+
+    internal class SmtpClientInfo
+    {
+        public SmtpClient SmtpClient;
+        public SemaphoreSlim ResourceLock = new SemaphoreSlim(1, 1);
     }
 }
