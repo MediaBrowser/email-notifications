@@ -42,29 +42,37 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         private SmtpClientInfo GetSmtpClient(InternalNotificationRequest request)
         {
             var keys = new List<string>();
+
+            var options = request.Configuration.Options;
+
+            options.TryGetValue("Server", out string server);
+            options.TryGetValue("Port", out string portString);
+
+            if (!int.TryParse(portString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int port))
+            {
+                port = DefaultPort;
+            }
+
+            keys.Add(server);
+            keys.Add(port.ToString(CultureInfo.InvariantCulture));
+
+            options.TryGetValue("Username", out string username);
+            options.TryGetValue("Password", out string password);
+
+            keys.Add(username ?? string.Empty);
+            keys.Add(password ?? string.Empty);
+
+            options.TryGetValue("EnableSSL", out string enableSSLString);
+            var enableSSL = string.Equals(enableSSLString, "true", StringComparison.OrdinalIgnoreCase);
+
+            keys.Add(enableSSL.ToString());
+
             var key = string.Join("-", keys.ToArray());
 
             return Clients.GetOrAdd(key, (k) =>
             {
-
-                var options = request.Configuration.Options;
-
                 options.TryGetValue("EmailFrom", out string emailFrom);
                 options.TryGetValue("EmailTo", out string emailTo);
-
-                options.TryGetValue("Username", out string username);
-                options.TryGetValue("Password", out string password);
-
-                options.TryGetValue("Server", out string server);
-
-                options.TryGetValue("EnableSSL", out string enableSSLString);
-                var enableSSL = string.Equals(enableSSLString, "true", StringComparison.OrdinalIgnoreCase);
-
-                options.TryGetValue("Port", out string portString);
-                if (!int.TryParse(portString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int port))
-                {
-                    port = DefaultPort;
-                }
 
                 var client = new SmtpClient()
                 {
