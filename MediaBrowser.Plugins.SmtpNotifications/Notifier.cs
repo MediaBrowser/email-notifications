@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Globalization;
 using MediaBrowser.Controller;
 using System.Collections.Concurrent;
+using MediaBrowser.Controller.Entities.TV;
 
 namespace MediaBrowser.Plugins.SmtpNotifications
 {
@@ -39,10 +40,30 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         private int DefaultPort = 25;
         private ConcurrentDictionary<string, SmtpClientInfo> Clients = new ConcurrentDictionary<string, SmtpClientInfo>(StringComparer.OrdinalIgnoreCase);
 
-        private SmtpClientInfo GetSmtpClient(InternalNotificationRequest request)
+        private SmtpClientInfo GetSmtpClient(string server, int port, string username, string password, bool enableSSL)
         {
             var keys = new List<string>();
 
+            keys.Add(server);
+            keys.Add(port.ToString(CultureInfo.InvariantCulture));
+
+            keys.Add(username ?? string.Empty);
+            keys.Add(password ?? string.Empty);
+
+            keys.Add(enableSSL.ToString());
+
+            var key = string.Join("-", keys.ToArray());
+
+            return Clients.GetOrAdd(key, (k) =>
+            {
+                return new SmtpClientInfo
+                {
+                };
+            });
+        }
+
+        public async Task SendNotification(InternalNotificationRequest request, CancellationToken cancellationToken)
+        {
             var options = request.Configuration.Options;
 
             options.TryGetValue("Server", out string server);
@@ -53,56 +74,14 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                 port = DefaultPort;
             }
 
-            keys.Add(server);
-            keys.Add(port.ToString(CultureInfo.InvariantCulture));
-
             options.TryGetValue("Username", out string username);
             options.TryGetValue("Password", out string password);
 
-            keys.Add(username ?? string.Empty);
-            keys.Add(password ?? string.Empty);
+            options.TryGetValue("EmailFrom", out string emailFrom);
+            options.TryGetValue("EmailTo", out string emailTo);
 
             options.TryGetValue("EnableSSL", out string enableSSLString);
             var enableSSL = string.Equals(enableSSLString, "true", StringComparison.OrdinalIgnoreCase);
-
-            keys.Add(enableSSL.ToString());
-
-            var key = string.Join("-", keys.ToArray());
-
-            return Clients.GetOrAdd(key, (k) =>
-            {
-                options.TryGetValue("EmailFrom", out string emailFrom);
-                options.TryGetValue("EmailTo", out string emailTo);
-
-                var client = new SmtpClient()
-                {
-                    Host = server,
-                    Port = port,
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    UseDefaultCredentials = false,
-                    Timeout = 20000
-                };
-
-                if (enableSSL) client.EnableSsl = true;
-
-                if (!string.IsNullOrEmpty(username))
-                {
-                    client.Credentials = new NetworkCredential(username, password);
-                }
-
-                return new SmtpClientInfo
-                {
-                    SmtpClient = client,
-                };
-            });
-        }
-
-        public async Task SendNotification(InternalNotificationRequest request, CancellationToken cancellationToken)
-        {
-            var options = request.Configuration.Options;
-
-            options.TryGetValue("EmailFrom", out string emailFrom);
-            options.TryGetValue("EmailTo", out string emailTo);
 
             var body = string.Format("{0}\n\n{1}", request.Title, request.Description);
 
@@ -112,14 +91,31 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                 Body = body
             })
             {
-                var clientInfo = GetSmtpClient(request);
+                var clientInfo = GetSmtpClient(server, port, username, password, enableSSL);
 
                 // https://emby.media/community/index.php?/topic/134277-email-notifications-3190/#comment-1405314
                 await clientInfo.ResourceLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 try
                 {
-                    await clientInfo.SmtpClient.SendMailAsync(mail).ConfigureAwait(false);
+                    using (var client = new SmtpClient
+                    {
+                        Host = server,
+                        Port = port,
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        UseDefaultCredentials = false,
+                        Timeout = 20000
+                    })
+                    {
+                        if (enableSSL) client.EnableSsl = true;
+
+                        if (!string.IsNullOrEmpty(username))
+                        {
+                            client.Credentials = new NetworkCredential(username, password);
+                        }
+
+                        await client.SendMailAsync(mail).ConfigureAwait(false);
+                    }
                 }
                 finally
                 {
@@ -140,7 +136,6 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
     internal class SmtpClientInfo
     {
-        public SmtpClient SmtpClient;
         public SemaphoreSlim ResourceLock = new SemaphoreSlim(1, 1);
     }
 }
