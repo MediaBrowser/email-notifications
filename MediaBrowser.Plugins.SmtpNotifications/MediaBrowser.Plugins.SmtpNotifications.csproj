@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="4.8.0.80" />
+    <PackageReference Include="mediabrowser.server.core" Version="4.9.1.90" />
   </ItemGroup>
 
 </Project>
